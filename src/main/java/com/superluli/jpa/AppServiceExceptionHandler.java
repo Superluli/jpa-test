@@ -28,7 +28,7 @@ public class AppServiceExceptionHandler extends ResponseEntityExceptionHandler {
 	ResponseEntity<?> handleControllerException(HttpServletRequest request,
 			Throwable ex) {
 
-		System.err.println(ex.getMessage());
+		ex.printStackTrace();
 
 		ErrorView errorView = new ErrorView(ex.getMessage());
 		return new ResponseEntity<ErrorView>(errorView,

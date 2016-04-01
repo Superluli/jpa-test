@@ -29,6 +29,12 @@ public class ParticipantEntity implements Serializable{
 	@Column(name = "holdings")
 	private int holdings;
 	
+	@Column(name = "user_id")
+	private String userId;
+	
+	@Column(name = "status")
+	private String status;
+	
 	public String getId() {
 		return id;
 	}
@@ -53,17 +59,27 @@ public class ParticipantEntity implements Serializable{
 		this.walletId = walletId;
 	}
 
-	@Override
-	public String toString() {
-		return "ParticipantEntity [id=" + id + ", promotionId=" + promotionId
-				+ ", walletId=" + walletId + "]";
-	}
-
 	public int getHoldings() {
 		return holdings;
 	}
 
 	public void setHoldings(int holdings) {
 		this.holdings = holdings;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 }

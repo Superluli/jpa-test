@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -16,6 +17,9 @@ public class ParticipantService {
 	@Autowired
 	private ParticipantRepository repo;
 
+	@Autowired
+	private ParticipantTransactionalService service;
+
 	public ParticipantEntity createParticipant(ParticipantEntity entity) {
 
 		List<ParticipantEntity> existingParticipants = repo
@@ -24,11 +28,11 @@ public class ParticipantService {
 
 		if (existingParticipants.size() == 0) {
 			entity.setId(CommonUtils.generateSessionId());
-			
+
 			try {
 				entity = repo.save(entity);
 			} catch (DataIntegrityViolationException e) {
-				
+
 				/*
 				 * Race Condition
 				 */
@@ -42,18 +46,11 @@ public class ParticipantService {
 
 		return entity;
 	}
-	
-	@Transactional
-	public ParticipantEntity doSomething(String participantId, ObjectNode data){
+
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public ParticipantEntity doSomething(String participantId, ObjectNode data) {
 		
-		ParticipantEntity entity = repo.findOneForUpdate(participantId);
-		
-		if(entity.getHoldings() == 0){
-			System.err.println("DO SOMETHING : " + data);
-			entity.setHoldings(1);
-			entity = repo.save(entity);
-		}
-		
-		return entity;
+		ParticipantEntity entity = repo.findOne(participantId);
+		return service.doSomething(entity, data); 
 	}
 }
