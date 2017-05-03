@@ -8,8 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "participant")
-public class ParticipantEntity implements Serializable{
+@Table(name = "test")
+public class RPParticipantEntity implements Serializable{
 
 	/**
 	 * 
@@ -20,17 +20,17 @@ public class ParticipantEntity implements Serializable{
 	@Column(name = "id")
 	private String id;
 	
-	@Column(name = "promotion_id")
-	private String promotionId;
+	@Column(name = "rp_id")
+	private String programId;
 	
 	@Column(name = "wallet_id")
 	private String walletId;
 
+	@Column(name = "usr_id")
+	private String userId;
+	
 	@Column(name = "holdings")
 	private int holdings;
-	
-	@Column(name = "user_id")
-	private String userId;
 	
 	@Column(name = "status")
 	private String status;
@@ -43,12 +43,12 @@ public class ParticipantEntity implements Serializable{
 		this.id = id;
 	}
 
-	public String getPromotionId() {
-		return promotionId;
+	public String getProgramId() {
+		return programId;
 	}
 
-	public void setPromotionId(String promotionId) {
-		this.promotionId = promotionId;
+	public void setProgramId(String programId) {
+		this.programId = programId;
 	}
 
 	public String getWalletId() {

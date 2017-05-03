@@ -3,54 +3,115 @@ package com.superluli.jpa.participant;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.superluli.jpa.CommonUtils;
+import com.superluli.jpa.NestedServerRuntimeException;
 
 @Component
 public class ParticipantService {
 
 	@Autowired
-	private ParticipantRepository repo;
+	private ParticipantRepository participantRepo;
 
 	@Autowired
 	private ParticipantTransactionalService service;
 
-	public ParticipantEntity createParticipant(ParticipantEntity entity) {
+	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+	public RPParticipantEntity creatParticipant(HttpHeaders headers) {
 
-		List<ParticipantEntity> existingParticipants = repo
-				.findByPromotionIdAndWalletId(entity.getPromotionId(),
-						entity.getWalletId());
+		String mid = headers.getFirst(Constants.Headers.X_SMPS_MID);
+		String dmid = headers.getFirst(Constants.Headers.X_SMPS_DMID);
 
-		if (existingParticipants.size() == 0) {
-			entity.setId(CommonUtils.generateSessionId());
+		RPParticipantEntity participantEntity = null;
+		participantEntity = new RPParticipantEntity();
+		participantEntity.setId(CommonUtils.generateUUID());
+		participantEntity.setProgramId("RP");
+		participantEntity.setWalletId(dmid);
+		participantEntity.setUserId(mid);
 
-			try {
-				entity = repo.save(entity);
-			} catch (DataIntegrityViolationException e) {
+		creatParticipant(participantEntity, true);
 
-				/*
-				 * Race Condition
-				 */
-				entity = repo.findByPromotionIdAndWalletId(
-						entity.getPromotionId(), entity.getWalletId()).get(0);
-			}
+		return participantEntity;
+	}
 
-		} else {
-			entity = existingParticipants.get(0);
+	public RPParticipantEntity creatParticipant(RPParticipantEntity entity, boolean db) {
+
+		if (!db) {
+			throw new NestedServerRuntimeException(HttpStatus.BAD_REQUEST, "SAVE FAIL");
 		}
 
-		return entity;
+		return participantRepo.save(entity);
 	}
 
-	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public ParticipantEntity doSomething(String participantId, ObjectNode data) {
-		
-		ParticipantEntity entity = repo.findOne(participantId);
-		return service.doSomething(entity, data); 
+	public void test() {
+		if (System.currentTimeMillis() > 0) {
+			throw new NestedServerRuntimeException(HttpStatus.BAD_REQUEST, "SAVE FAIL");
+		}
 	}
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+	public RPParticipantEntity getParticipantByWalletId(HttpHeaders headers) {
+
+		String mid = headers.getFirst(Constants.Headers.X_SMPS_MID);
+		String dmid = headers.getFirst(Constants.Headers.X_SMPS_DMID);
+
+		String thread = Thread.currentThread().getName();
+
+		List<RPParticipantEntity> allParticipantsOnSameUser = getAllParticipantsOnSameUser("RP", mid);
+
+		System.err.println(thread + "1st get");
+		allParticipantsOnSameUser.stream().forEach(p -> System.err.print(p.getWalletId() + ","));
+		System.err.println();
+
+		allParticipantsOnSameUser = getAllParticipantsOnSameUser("RP", mid);
+		
+		System.err.println(thread + "2nd get");
+		allParticipantsOnSameUser.stream().forEach(p -> System.err.print(p.getWalletId() + ","));
+		System.err.println();
+		System.err.println("----------------------------------------------------------");
+		
+		RPParticipantEntity existingParticipantOnWalletId = allParticipantsOnSameUser.stream()
+				.filter(p -> p.getWalletId().equals(dmid)).findFirst().orElse(null);
+
+		RPParticipantEntity participantEntity = null;
+
+		if (!allParticipantsOnSameUser.isEmpty() && existingParticipantOnWalletId == null) {
+
+			RPParticipantEntity anyExistingParticipant = allParticipantsOnSameUser.get(0);
+
+			participantEntity = new RPParticipantEntity();
+			participantEntity.setId(CommonUtils.generateUUID());
+			participantEntity.setProgramId("RP");
+			participantEntity.setWalletId(dmid);
+			participantEntity.setUserId(mid);
+
+			participantEntity = participantRepo.save(participantEntity);
+
+			System.err.println(thread + "release lock");
+			return participantEntity;
+		}
+
+		return null;
+	}
+
+	private List<RPParticipantEntity> getAllParticipantsOnSameUser(String programId, String userId) {
+
+		return participantRepo.findByProgramIdAndUserIdForUpdate(programId, userId);
+	}
+
+	public RPParticipantEntity syncParticipantFromExistingParticipant(RPParticipantEntity participantOnWalletId,
+			RPParticipantEntity anyExistingParticipant) {
+
+		participantOnWalletId.setHoldings(anyExistingParticipant.getHoldings());
+		participantOnWalletId.setStatus(anyExistingParticipant.getStatus());
+
+		return participantOnWalletId;
+	}
+
 }
