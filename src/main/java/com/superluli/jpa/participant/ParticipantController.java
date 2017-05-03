@@ -27,7 +27,7 @@ public class ParticipantController {
 		
 
 		try {
-			Thread.sleep(rnd.nextInt(100));
+			Thread.sleep(rnd.nextInt(10));
 		} catch (Exception e) {
 		}
 		

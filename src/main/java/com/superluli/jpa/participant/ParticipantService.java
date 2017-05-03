@@ -65,16 +65,15 @@ public class ParticipantService {
 
 		List<RPParticipantEntity> allParticipantsOnSameUser = getAllParticipantsOnSameUser("RP", mid);
 
-		System.err.println(thread + "1st get");
+		System.err.println(thread + " 1st get");
 		allParticipantsOnSameUser.stream().forEach(p -> System.err.print(p.getWalletId() + ","));
 		System.err.println();
 
 		allParticipantsOnSameUser = getAllParticipantsOnSameUser("RP", mid);
 		
-		System.err.println(thread + "2nd get");
+		System.err.println(thread + " 2nd get");
 		allParticipantsOnSameUser.stream().forEach(p -> System.err.print(p.getWalletId() + ","));
 		System.err.println();
-		System.err.println("----------------------------------------------------------");
 		
 		RPParticipantEntity existingParticipantOnWalletId = allParticipantsOnSameUser.stream()
 				.filter(p -> p.getWalletId().equals(dmid)).findFirst().orElse(null);
@@ -93,7 +92,8 @@ public class ParticipantService {
 
 			participantEntity = participantRepo.save(participantEntity);
 
-			System.err.println(thread + "release lock");
+			System.err.println(thread + " release lock");
+			System.err.println("----------------------------------------------------------");
 			return participantEntity;
 		}
 

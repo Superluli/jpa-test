@@ -14,3 +14,7 @@ CREATE TABLE IF NOT EXISTS `promotion`.`test` (
   KEY `rp_ptcpnt_x01` (`rp_id` ASC, `usr_id` ASC),
   UNIQUE KEY `rp_ptcpnt_x02` (`rp_id` ASC, `wallet_id` ASC))
 ENGINE = InnoDB;
+
+#SET SESSION tx_isolation='READ-COMMITTED';
+#SET SESSION tx_isolation='REPEATABLE-READ';
+SHOW VARIABLES LIKE 'tx_isolation';
