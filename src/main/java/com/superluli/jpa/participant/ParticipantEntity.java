@@ -9,7 +9,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "test")
-public class RPParticipantEntity implements Serializable{
+public class ParticipantEntity implements Serializable{
 
 	/**
 	 * 

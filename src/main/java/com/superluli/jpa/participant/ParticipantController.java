@@ -22,20 +22,21 @@ public class ParticipantController {
 	private static Random rnd = new Random();
 	
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public RPParticipantEntity getParticipantByWalletId(HttpServletRequest request,
+	public ParticipantEntity getParticipantByWalletId(HttpServletRequest request,
 			@RequestParam("wallet.id") String walletId, @RequestHeader HttpHeaders headers) {
 		
 
 		try {
-			Thread.sleep(rnd.nextInt(10));
+			Thread.sleep(rnd.nextInt(100));
 		} catch (Exception e) {
 		}
 		
-		return service.getParticipantByWalletId(headers);
+		service.getParticipantByWalletId1(headers);
+		return null;
 	}
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
-	public RPParticipantEntity create(HttpServletRequest request,
+	public ParticipantEntity create(HttpServletRequest request,
 			@RequestParam("wallet.id") String walletId, @RequestHeader HttpHeaders headers) {
 
 		return service.creatParticipant(headers);

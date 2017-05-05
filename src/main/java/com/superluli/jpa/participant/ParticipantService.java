@@ -19,17 +19,14 @@ public class ParticipantService {
 	@Autowired
 	private ParticipantRepository participantRepo;
 
-	@Autowired
-	private ParticipantTransactionalService service;
-
-	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
-	public RPParticipantEntity creatParticipant(HttpHeaders headers) {
+	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+	public ParticipantEntity creatParticipant(HttpHeaders headers) {
 
 		String mid = headers.getFirst(Constants.Headers.X_SMPS_MID);
 		String dmid = headers.getFirst(Constants.Headers.X_SMPS_DMID);
 
-		RPParticipantEntity participantEntity = null;
-		participantEntity = new RPParticipantEntity();
+		ParticipantEntity participantEntity = null;
+		participantEntity = new ParticipantEntity();
 		participantEntity.setId(CommonUtils.generateUUID());
 		participantEntity.setProgramId("RP");
 		participantEntity.setWalletId(dmid);
@@ -40,7 +37,7 @@ public class ParticipantService {
 		return participantEntity;
 	}
 
-	public RPParticipantEntity creatParticipant(RPParticipantEntity entity, boolean db) {
+	public ParticipantEntity creatParticipant(ParticipantEntity entity, boolean db) {
 
 		if (!db) {
 			throw new NestedServerRuntimeException(HttpStatus.BAD_REQUEST, "SAVE FAIL");
@@ -55,58 +52,49 @@ public class ParticipantService {
 		}
 	}
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
-	public RPParticipantEntity getParticipantByWalletId(HttpHeaders headers) {
+	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+	public ParticipantEntity getParticipantByWalletId1(HttpHeaders headers) {
 
 		String mid = headers.getFirst(Constants.Headers.X_SMPS_MID);
 		String dmid = headers.getFirst(Constants.Headers.X_SMPS_DMID);
 
 		String thread = Thread.currentThread().getName();
 
-		List<RPParticipantEntity> allParticipantsOnSameUser = getAllParticipantsOnSameUser("RP", mid);
+		List<ParticipantEntity> allParticipantsOnSameUser = participantRepo.findByProgramIdAndUserIdForUpdate("RP", mid);
 
-		System.err.println(thread + " 1st get");
 		allParticipantsOnSameUser.stream().forEach(p -> System.err.print(p.getWalletId() + ","));
 		System.err.println();
 
-		allParticipantsOnSameUser = getAllParticipantsOnSameUser("RP", mid);
+		allParticipantsOnSameUser = participantRepo.findByProgramIdAndUserIdForUpdate("RP", mid);
 		
-		System.err.println(thread + " 2nd get");
 		allParticipantsOnSameUser.stream().forEach(p -> System.err.print(p.getWalletId() + ","));
 		System.err.println();
 		
-		RPParticipantEntity existingParticipantOnWalletId = allParticipantsOnSameUser.stream()
+		ParticipantEntity existingParticipantOnWalletId = allParticipantsOnSameUser.stream()
 				.filter(p -> p.getWalletId().equals(dmid)).findFirst().orElse(null);
 
-		RPParticipantEntity participantEntity = null;
+		ParticipantEntity participantEntity = null;
 
 		if (!allParticipantsOnSameUser.isEmpty() && existingParticipantOnWalletId == null) {
 
-			RPParticipantEntity anyExistingParticipant = allParticipantsOnSameUser.get(0);
+			ParticipantEntity anyExistingParticipant = allParticipantsOnSameUser.get(0);
 
-			participantEntity = new RPParticipantEntity();
-			participantEntity.setId(CommonUtils.generateUUID());
+			participantEntity = new ParticipantEntity();
+			participantEntity.setId("1");
 			participantEntity.setProgramId("RP");
 			participantEntity.setWalletId(dmid);
 			participantEntity.setUserId(mid);
 
 			participantEntity = participantRepo.save(participantEntity);
-
-			System.err.println(thread + " release lock");
-			System.err.println("----------------------------------------------------------");
-			return participantEntity;
 		}
 
-		return null;
+		System.err.println("TEST ----------------------------------------------------------");
+		return participantEntity;
 	}
 
-	private List<RPParticipantEntity> getAllParticipantsOnSameUser(String programId, String userId) {
 
-		return participantRepo.findByProgramIdAndUserIdForUpdate(programId, userId);
-	}
-
-	public RPParticipantEntity syncParticipantFromExistingParticipant(RPParticipantEntity participantOnWalletId,
-			RPParticipantEntity anyExistingParticipant) {
+	public ParticipantEntity syncParticipantFromExistingParticipant(ParticipantEntity participantOnWalletId,
+			ParticipantEntity anyExistingParticipant) {
 
 		participantOnWalletId.setHoldings(anyExistingParticipant.getHoldings());
 		participantOnWalletId.setStatus(anyExistingParticipant.getStatus());
