@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ParticipantRepository extends
 		JpaRepository<ParticipantEntity, String> {
-
+	
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select p from ParticipantEntity p where p.id=?1")
 	public ParticipantEntity findOneForUpdate(String id);

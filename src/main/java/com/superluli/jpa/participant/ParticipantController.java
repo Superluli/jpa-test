@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -40,5 +41,12 @@ public class ParticipantController {
 			@RequestParam("wallet.id") String walletId, @RequestHeader HttpHeaders headers) {
 
 		return service.creatParticipant(headers);
+	}
+	
+	@RequestMapping(value = "/{participantId}", method = RequestMethod.GET)
+	public ParticipantEntity getById(@PathVariable("participantId") String participantId) {
+
+		return service.getResult();
+		//return service.getById(participantId);
 	}
 }

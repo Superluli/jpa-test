@@ -3,6 +3,7 @@ package com.superluli.jpa.participant;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,18 @@ public class ParticipantService {
 	@Autowired
 	private ParticipantRepository participantRepo;
 
+	public ParticipantEntity getById(String participantId){
+		
+		return getResult();
+	}
+	
+	@Cacheable
+	public ParticipantEntity getResult(){
+		
+		System.err.println("get result");
+		return new ParticipantEntity();
+	}
+	
 	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
 	public ParticipantEntity creatParticipant(HttpHeaders headers) {
 
@@ -46,19 +59,11 @@ public class ParticipantService {
 		return participantRepo.save(entity);
 	}
 
-	public void test() {
-		if (System.currentTimeMillis() > 0) {
-			throw new NestedServerRuntimeException(HttpStatus.BAD_REQUEST, "SAVE FAIL");
-		}
-	}
-
 	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
 	public ParticipantEntity getParticipantByWalletId1(HttpHeaders headers) {
 
 		String mid = headers.getFirst(Constants.Headers.X_SMPS_MID);
 		String dmid = headers.getFirst(Constants.Headers.X_SMPS_DMID);
-
-		String thread = Thread.currentThread().getName();
 
 		List<ParticipantEntity> allParticipantsOnSameUser = participantRepo.findByProgramIdAndUserIdForUpdate("RP", mid);
 
